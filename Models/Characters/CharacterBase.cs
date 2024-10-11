@@ -35,27 +35,42 @@ public abstract class CharacterBase : ICharacter
     }
 
     public void Attack(ICharacter target)
+{
+    OutputManager.WriteLine($"{Name} attacks {target.Name} with a chilling touch.", ConsoleColor.Blue);
+
+    if (target.HP <= 0)
     {
-        // TODO Update this method to ensure the character is removed after attacking them
-
-        OutputManager.WriteLine($"{Name} attacks {target.Name} with a chilling touch.", ConsoleColor.Blue);
-
-        if (this is Player player && target is ILootable targetWithTreasure && !string.IsNullOrEmpty(targetWithTreasure.Treasure))
-        {
-            OutputManager.WriteLine($"{Name} takes {targetWithTreasure.Treasure} from {target.Name}", ConsoleColor.Blue);
-            player.Gold += 10; // Assuming each treasure is worth 10 gold
-            targetWithTreasure.Treasure = null; // Treasure is taken
-            OutputManager.WriteLine($"{Name} now has {player.Gold} gold", ConsoleColor.Blue);
-        }
-        else if (this is Player playerWithGold && target is Player targetWithGold && targetWithGold.Gold > 0)
-        {
-            // we can't attack other players, but if we could we could take their gold here
-            OutputManager.WriteLine($"{Name} takes gold from {target.Name}", ConsoleColor.Blue);
-            playerWithGold.Gold += targetWithGold.Gold;
-            targetWithGold.Gold = 0; // Gold is taken
-        }
+        OutputManager.WriteLine($"{target.Name} is already defeated.", ConsoleColor.Red);
+        return; 
     }
 
+    target.HP -= 8; 
+
+    if (target.HP <= 0)
+    {
+        OutputManager.WriteLine($"{target.Name} has been defeated!", ConsoleColor.Red);
+        RemoveCharacter(target); 
+    }
+
+    if (this is Player player && target is ILootable targetWithTreasure && !string.IsNullOrEmpty(targetWithTreasure.Treasure))
+    {
+        OutputManager.WriteLine($"{Name} takes {targetWithTreasure.Treasure} from {target.Name}", ConsoleColor.Blue);
+        player.Gold += 10; // Assuming each treasure is worth 10 gold
+        targetWithTreasure.Treasure = null; // Treasure is taken
+        OutputManager.WriteLine($"{Name} now has {player.Gold} gold", ConsoleColor.Blue);
+    }
+    else if (this is Player playerWithGold && target is Player targetWithGold && targetWithGold.Gold > 0)
+    {
+        OutputManager.WriteLine($"{Name} takes gold from {target.Name}", ConsoleColor.Blue);
+        playerWithGold.Gold += targetWithGold.Gold;
+        targetWithGold.Gold = 0; // Gold is taken
+    }
+}
+
+    private void RemoveCharacter(ICharacter target)
+    {
+        _currentRoom.RemoveCharacter(target); 
+    }
     public void Move(IRoom? nextRoom)
     {
         if (nextRoom != null)

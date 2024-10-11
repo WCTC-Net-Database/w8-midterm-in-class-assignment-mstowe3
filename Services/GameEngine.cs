@@ -15,6 +15,8 @@ public class GameEngine
     private readonly IRoomFactory _roomFactory;
     private ICharacter _player;
     private ICharacter _goblin;
+    private ICharacter _skeleton;
+    private ICharacter _bat;
 
     private List<IRoom> _rooms;
 
@@ -35,22 +37,37 @@ public class GameEngine
         }
     }
 
-    private void AttackCharacter()
+    private void AttackCharacter() ///Menu not appearing until after selection..? 
+{
+    var monsters = _player.CurrentRoom.Characters
+        .Where(c => c != _player)
+        .ToList();
+
+    if (!monsters.Any())
     {
-        // TODO Update this method to allow for attacking a selected monster in the room.
-        // TODO e.g. "Which monster would you like to attack?"
-        // TODO Right now it just attacks the first monster in the room.
-        // TODO It is ok to leave this functionality if there is only one monster in the room.
-        var target = _player.CurrentRoom.Characters.FirstOrDefault(c => c != _player);
-        if (target != null)
-        {
-            _player.Attack(target);
-        }
-        else
-        {
-            _outputManager.WriteLine("No characters to attack.", ConsoleColor.Red);
-        }
+        _outputManager.WriteLine("No characters to attack.", ConsoleColor.Red);
+        return;
+    } else
+    {
+        _outputManager.WriteLine("Which monster would you like to attack?");
+    monsters.Select((monster, index) => new { monster, index })
+            .ToList()
+            .ForEach(m => _outputManager.WriteLine($"{m.index + 1}. {m.monster.Name}"));
     }
+    
+
+    // Get player's selection
+    if (int.TryParse(Console.ReadLine(), out int selection) && selection > 0 && selection <= monsters.Count)
+    {
+        var target = monsters.ElementAt(selection - 1); 
+        _player.Attack(target);
+        _outputManager.WriteLine($"You attacked {target.Name}!");
+    }
+    else
+    {
+        _outputManager.WriteLine("Invalid selection. Please choose a valid monster number.", ConsoleColor.Red);
+    }
+}
 
     private void GameLoop()
     {
@@ -91,15 +108,7 @@ public class GameEngine
                     direction = "west";
                     break;
                 case "5":
-                    if (_player.CurrentRoom.Characters.Any(c => c != _player))
-                    {
-                        AttackCharacter();
-                    }
-                    else
-                    {
-                        _outputManager.WriteLine("No characters to attack.", ConsoleColor.Red);
-                    }
-
+                    AttackCharacter();
                     break;
                 case "6":
                     _outputManager.WriteLine("Exiting game...", ConsoleColor.Red);
@@ -124,12 +133,25 @@ public class GameEngine
     private void LoadMonsters()
     {
         _goblin = _context.Characters.OfType<Goblin>().FirstOrDefault();
+        _skeleton = _context.Characters.OfType<Skeleton>().FirstOrDefault();
+        _bat = _context.Characters.OfType<Bat>().FirstOrDefault();
 
         var random = new Random();
         var randomRoom = _rooms[random.Next(_rooms.Count)];
         randomRoom.AddCharacter(_goblin); // Use helper method
 
         // TODO Load your two new monsters here into the same room
+        randomRoom.AddCharacter(_skeleton);
+        randomRoom.AddCharacter(_bat);
+    if (_skeleton != null)
+    {
+        randomRoom.AddCharacter(_skeleton);
+    }
+
+    if (_bat != null)
+    {
+        randomRoom.AddCharacter(_bat);
+    }
     }
 
     private void SetupGame()
@@ -159,6 +181,9 @@ public class GameEngine
         var library = _roomFactory.CreateRoom("library", _outputManager);
         var armory = _roomFactory.CreateRoom("armory", _outputManager);
         var garden = _roomFactory.CreateRoom("garden", _outputManager);
+        var bedroom = _roomFactory.CreateRoom("bedroom", _outputManager);
+        var kitchen = _roomFactory.CreateRoom("kitchen", _outputManager);
+
 
         entrance.North = treasureRoom;
         entrance.West = library;
@@ -171,13 +196,20 @@ public class GameEngine
 
         library.East = entrance;
         library.South = armory;
+        library.West = bedroom;
+
+        bedroom.East = library;
+
+        kitchen.East = armory;
+        kitchen.North = bedroom;
 
         armory.North = library;
+        armory.West = kitchen;
 
         garden.West = entrance;
 
         // Store rooms in a list for later use
-        _rooms = new List<IRoom> { entrance, treasureRoom, dungeonRoom, library, armory, garden };
+        _rooms = new List<IRoom> { entrance, treasureRoom, dungeonRoom, library, armory, garden, bedroom, kitchen };
 
         return entrance;
     }

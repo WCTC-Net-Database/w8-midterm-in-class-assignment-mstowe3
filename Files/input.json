@@ -47,5 +47,37 @@
     "Level": 2,
     "HP": 8,
     "Treasure": null
+  },
+  {
+    "$type": "Skeleton",
+    "Name": "Spooky Skeleton",
+    "Type": "Skeleton",
+    "Level": 2,
+    "HP": 8,
+    "Treasure": null
+  },
+  {
+    "$type": "Skeleton",
+    "Name": "Boss Skeleton",
+    "Type": "Skeleton",
+    "Level": 4,
+    "HP": 12,
+    "Treasure": null
+  },
+  {
+    "$type": "Bat",
+    "Name": "Vampire Bat",
+    "Type": "Bat",
+    "Level": 2,
+    "HP": 8,
+    "Treasure": null
+  },
+  {
+    "$type": "Bat",
+    "Name": "Baby Bat",
+    "Type": "Bat",
+    "Level": 2,
+    "HP": 8,
+    "Treasure": null
   }
 ]
